@@ -55,7 +55,7 @@ class ListIDPanel extends React.Component {
     this.Utils = context.drizzle.web3.utils; 
     this.count = 0; 
     this.TokenABI = context.drizzle.contracts.BBOTest.abi;
-    
+    this.fromBlock = context.drizzle.options.params.fromBlock
   }
 
     getDataIPFS = async (ipfsHash) => {
@@ -77,7 +77,7 @@ class ListIDPanel extends React.Component {
       var that = this;
       this.contracts.BBTCRHelper.events.CreateListID({
         //  filter : {owner : this.props.accounts[0]},
-          fromBlock: 0
+          fromBlock: this.fromBlock
       }, function(error, event){})
       .on('data', async function(event){
          // //console.log(event.returnValues); 

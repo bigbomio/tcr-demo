@@ -78,7 +78,7 @@ class ProgramInner extends Component {
     this.state = initialState;
     this.Utils = context.drizzle.web3.utils;
     this.context = context;
-
+    this.fromBlock = context.drizzle.options.params.fromBlock
   
   }
 
@@ -168,7 +168,7 @@ class ProgramInner extends Component {
       //
       this.contracts.BBTCRHelper.events.CreateListID({
           filter : {listID : this.props.listID},
-          fromBlock: 0
+          fromBlock: this.fromBlock
       }, function(error, event){})
       .on('data', async function(event){
          // console.log(event.returnValues); 

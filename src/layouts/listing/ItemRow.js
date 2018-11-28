@@ -16,6 +16,8 @@ class ItemRow  extends React.Component {
   	this.state = {item: this.props.item};
   	this.contracts = context.drizzle.contracts;
   	this.web3 = context.drizzle.web3
+  	this.fromBlock = context.drizzle.options.params.fromBlock
+
   }
   componentDidMount = async () => {
   	let ipfsHash = this.web3.utils.toAscii(this.state.item.ipfsHash)
@@ -31,7 +33,6 @@ class ItemRow  extends React.Component {
 	      created: 0, itemHash : itemHash, isOwner : isOwner, stage : stage, listID: this.props.listID};
 	    this.setState({item:obj})
 	  }
-  	
   }
   getPassEvents = (evenName, contract, options) => {
     let ContractIntanceWeb3 = new this.web3.eth.Contract(contract.abi, contract.address);
@@ -59,7 +60,7 @@ class ItemRow  extends React.Component {
   					listID:this.props.listID,
   				 	itemHash: this.web3.utils.sha3(ipfsHash)
   				 },
-  			 fromBlock: 0,
+  			 fromBlock: this.fromBlock,
   			});
   		if(r.length > 0){
   			//get latest event logs r[r.length-1]
@@ -85,9 +86,8 @@ class ItemRow  extends React.Component {
   					listID:this.props.listID,
   				 	itemHash: this.web3.utils.sha3(ipfsHash)
   				 },
-  			 fromBlock: 0,
+  			 fromBlock: this.fromBlock,
   			});
-  		console.log(r)
   		if(r.length > 0){
   			resObj.applicationEndDate = r[r.length-1].returnValues.applicationEndDate
   			if(now >= resObj.applicationEndDate)
@@ -210,12 +210,12 @@ class ItemRow  extends React.Component {
   }
 }
 ItemRow.contextTypes = {
-    drizzle: PropTypes.object
+    drizzle: PropTypes.object,
 }
 const mapStateToProps = state => {
     return {
       accounts: state.accounts,
-      contracts: state.contracts
+      contracts: state.contracts,
     }
 }
 export default (drizzleConnect(ItemRow, mapStateToProps));

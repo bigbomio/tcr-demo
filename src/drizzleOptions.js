@@ -31,7 +31,9 @@ const drizzleOptions = {
   polls: {
     accounts: 1500
   },
-  
+  params:{
+    fromBlock:  3417285
+  }
 
 }
 

@@ -172,7 +172,7 @@ class UnorderTCRListing extends React.Component {
     this.Utils = context.drizzle.web3.utils; 
     this.count = 0; 
     this.web3 = context.drizzle.web3
-
+    this.fromBlock = context.drizzle.options.params.fromBlock
   }
 
   componentDidMount() {
@@ -180,7 +180,7 @@ class UnorderTCRListing extends React.Component {
     const BBExpertHashWeb3 = new this.web3.eth.Contract(this.contracts.BBExpertHash.abi, this.contracts.BBExpertHash.address);
     return BBExpertHashWeb3.getPastEvents('SavingItemData', 
     {
-        fromBlock: 3060000
+        fromBlock: this.fromBlock
     }, function(error, event){})
     .then(async function(events){
         that.items = events.map(item => item.returnValues);        

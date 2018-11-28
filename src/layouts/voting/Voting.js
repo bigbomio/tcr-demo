@@ -318,12 +318,11 @@ class Voting extends Component {
         return (
             <div>
             <h3 className = "newstype">Stage : {this.state.votingState}</h3>
-            <p>Name: {this.props.componentPros.name} </p>
-            <p>Poll ID: {this.state.pollID} </p>
-
-            
+            <p>Name: {this.props.componentPros.name} <br/>
+            Email: {this.props.componentPros.email} <br/>
+            Address: {this.props.componentPros.address} </p>
+            <p>Poll ID: <strong>{this.state.pollID}</strong></p>
             <p>{this.displayTime()} </p>
-
             {this.displayForm()}
 
           </div>
