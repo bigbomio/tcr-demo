@@ -28,7 +28,9 @@ class RegisterItem extends Component {
       this.handleInputChange = this.handleInputChange.bind(this);
       var initialState = {bboAmount:0, submiting:false};
       this.state = initialState;
-      this.BBExpertHash = this.contracts.BBExpertHash;  
+      this.BBExpertHash = this.contracts.BBExpertHash;
+      this.BBUnOrderedTCRInstance = this.contracts.BBUnOrderedTCR;
+      this.BBOInstance = this.contracts.BBOTest;  
 
     }
 
@@ -45,6 +47,8 @@ class RegisterItem extends Component {
         let email = that.state['email'];
         let phone = that.state['phone'];
         let linkedin = that.state['linkedin'];
+        let bboAmount = that.state['tokenInput'];
+        bboAmount = this.Utils.toWei(bboAmount, 'ether');
 
         if(fullName == null || address == null || email == null || phone == null) {
             that.setState({
@@ -52,6 +56,24 @@ class RegisterItem extends Component {
             });
             return;
         }
+
+       
+
+        let paramTCR = await this.contracts.BBTCRHelper.methods.getListParams(this.props.componentPros.listID).call();
+        let minStake = paramTCR.minStake;
+
+        if(bboAmount < minStake) {
+            alert('Token Amount must be greater ' + this.Utils.fromWei(minStake, 'ether'));
+            that.setState({
+                'submiting': false
+            });
+            return;
+        }
+       
+        let token = await this.contracts.BBTCRHelper.methods.getToken(this.props.componentPros.listID).call();
+        let ERCIntance = await this.getERC20Instance(token);
+
+        var allowance = await ERCIntance.methods.allowance(this.props.accounts[0], this.BBUnOrderedTCRInstance.address).call();
         
         let data = {fullName, address, email, phone};
 
@@ -66,14 +88,61 @@ class RegisterItem extends Component {
             } else {
                 console.log('https://gateway.ipfs.io/ipfs/' + result)
                 that.BBExpertHash.methods.pushData(that.Utils.toHex(result)).send();
-                that.setState({
-                    'submiting': false
-                });
+                
+                this.handleApply(ERCIntance, minStake, allowance ,bboAmount, that.Utils.sha3(result), 'Data');   
             }
              
           });
         
     }
+
+    async handleApply (ERCIntance, minStake,allowance ,bboAmount,itemHash, dataHash) {
+        console.log('itemHash', itemHash);
+        console.log('List ID ', this.props.componentPros.listID);
+        let that = this;
+
+        if(allowance > minStake && bboAmount >= minStake) {
+            that.BBUnOrderedTCRInstance.methods.apply(this.props.componentPros.listID, bboAmount,itemHash, that.Utils.toHex(dataHash)).send();
+            that.setState({
+                'submiting': false
+            });
+            return;
+        }
+        if(allowance > 0){
+          ERCIntance.methods.approve(this.BBUnOrderedTCRInstance.address, 0).send();
+          setTimeout(function () {
+              
+              ERCIntance.methods.approve(that.BBUnOrderedTCRInstance.address, that.Utils.toWei(new that.Utils.BN(Math.pow(2,52)), 'ether')).send();
+              setTimeout(function () {
+                                              
+                  that.BBUnOrderedTCRInstance.methods.apply(that.props.componentPros.listID, bboAmount,itemHash, that.Utils.toHex(dataHash)).send();
+                  that.setState({
+                      'submiting': false
+                  });
+
+              }, 10000);
+          }, 5000);
+
+        }else{
+
+            ERCIntance.methods.approve(that.BBUnOrderedTCRInstance.address, that.Utils.toWei( new that.Utils.BN(Math.pow(2,52)), 'ether')).send();
+            setTimeout(function () {
+                                            
+                that.BBUnOrderedTCRInstance.methods.apply(that.props.componentPros.listID, bboAmount,itemHash, that.Utils.toHex(dataHash)).send();
+                that.setState({
+                    'submiting': false
+                });
+
+            }, 5000);
+        }
+    }
+
+    async getERC20Instance(token) {
+        return await new this.context.drizzle.web3.eth.Contract(this.BBOInstance.abi, token, {
+            from: this.props.accounts[0], // default from address
+            gasPrice: '20000000000' // default gas price in wei ~20gwei
+          });
+      }
 
 
     handleInputChange(event) {
@@ -84,6 +153,8 @@ class RegisterItem extends Component {
         if(this.account != this.props.accounts[0]) {
             this.account = this.props.accounts[0]
         }
+        const { classes } = this.props;
+
         return (
             <div className="container-fix-600">
             <p>
@@ -101,6 +172,18 @@ class RegisterItem extends Component {
             <p>
             <input className="input-bbo" key="linkedin" type="text" name="linkedin" placeholder = "Website" onChange={this.handleInputChange} />
             </p>
+            <TextField
+              label="Stake Token Amount"
+              name= "tokenInput"
+              onChange={this.handleInputChange}
+              type="number"
+              className={classes.textField}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              margin="normal"
+              variant="outlined"
+            />
             <p><button key="submit" className="sub-item-button-submit" type="button" onClick={this.updateParams}>Register</button>
             </p>
            

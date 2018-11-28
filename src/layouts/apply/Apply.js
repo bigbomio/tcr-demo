@@ -57,11 +57,11 @@ class Apply extends Component {
 
         let paramTCR = await this.contracts.BBTCRHelper.methods.getListParams(this.props.componentPros.listID).call();
         let minStake = paramTCR.minStake;
-        //console.log('minStake',paramTCR.minStake);
+       
         let token = await this.contracts.BBTCRHelper.methods.getToken(this.props.componentPros.listID).call();
         let ERCIntance = await this.getERC20Instance(token);
 
-        //console.log('Token address ',token);
+       
 
         var allowance = await ERCIntance.methods.allowance(this.props.accounts[0], this.BBUnOrderedTCRInstance.address).call();
         //console.log('allowance',allowance);
@@ -76,11 +76,10 @@ class Apply extends Component {
         if(dataHash == null) {
             dataHash = 'data';
         }
-        //console.log('itemHash', itemHash);
+        console.log('itemHash', itemHash);
         //console.log('dataHash', dataHash);
 
         if(allowance > minStake && bboAmount >= minStake) {
-            //console.log('do Apply');
             that.BBUnOrderedTCRInstance.methods.apply(this.props.componentPros.listID, bboAmount,itemHash, that.Utils.toHex(dataHash)).send();
             that.setState({
                 'submiting': false
@@ -95,7 +94,6 @@ class Apply extends Component {
             });
             return;
         }
-        //console.log(allowance)
         if(allowance > 0){
           ERCIntance.methods.approve(this.BBUnOrderedTCRInstance.address, 0).send();
           setTimeout(function () {
